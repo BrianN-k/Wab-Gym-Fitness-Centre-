@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-person-plus me-2" style="color:#1a7a4a"></i>{{ title }}</h4>
+  <a href="{% url 'member_list' %}" class="btn btn-outline-secondary btn-sm">← Back to Members</a>
+</div>
+
+<div class="card">
+  <div class="card-header">New Member Form</div>
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+        <!-- Row 1: Name, Phone, Package, Total Amount -->
+        <div class="col-md-3">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="name" class="form-control" value="{{ member.name|default:'' }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Phone *</label>
+          <input type="text" name="phone" class="form-control" value="{{ member.phone|default:'' }}" placeholder="07xxxxxxxx" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Select Package *</label>
+          <select name="package" class="form-select" required>
+            <option value="">-- Select Package --</option>
+            {% for pkg in packages %}
+            <option value="{{ pkg.pk }}" {% if member.package.pk == pkg.pk %}selected{% endif %}>
+              {{ pkg.name }} — KSh {{ pkg.fee }} ({{ pkg.duration_days }} days)
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Total Amount</label>
+          <input type="text" class="form-control" id="totalAmount" placeholder="Auto from package" readonly style="background:#f8f9fa">
+        </div>
+
+        <!-- Row 2: DOB, Reference, (space), Amount -->
+        <div class="col-md-3">
+          <label class="form-label">Date of Birth *</label>
+          <input type="date" name="dob" class="form-control" value="{{ member.dob|default:'' }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Referee</label>
+          <input type="text" name="referee" class="form-control" value="{{ member.referee|default:'' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" value="{{ member.email|default:'' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Amount Paid</label>
+          <input type="number" name="amount_paid" id="amountPaid" class="form-control" value="{{ member.amount_paid|default:'0.00' }}" placeholder="0.00" min="0" step="0.01" style="background:#f8f9fa">
+        </div>
+
+        <!-- Row 3: NID, Gender, Address, Due Amount -->
+        <div class="col-md-3">
+          <label class="form-label">National ID (NID)</label>
+          <input type="text" name="nid" class="form-control" value="{{ member.nid|default:'' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Gender *</label>
+          <select name="gender" class="form-select" required>
+            <option value="">-- Select --</option>
+            <option value="male" {% if member.gender == 'male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if member.gender == 'female' %}selected{% endif %}>Female</option>
+            <option value="other" {% if member.gender == 'other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Address</label>
+          <input type="text" name="address" class="form-control" value="{{ member.address|default:'' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Due Amount</label>
+          <input type="text" class="form-control" id="dueAmount" placeholder="Auto" readonly style="background:#f8f9fa">
+        </div>
+
+        <!-- Row 4: Join Date, Photo -->
+        <div class="col-md-3">
+          <label class="form-label">Join Date *</label>
+          <input type="date" name="join_date" class="form-control" value="{{ member.join_date|default:'' }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Member Photo</label>
+          <input type="file" name="photo" class="form-control" accept="image/*">
+        </div>
+        {% if member and member.photo %}
+        <div class="col-md-2">
+          <label class="form-label">Current Photo</label>
+          <img src="{{ member.photo.url }}" class="img-thumbnail" style="height:60px">
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-4 text-center">
+        <button type="submit" class="btn btn-wab px-5">
+          <i class="bi bi-check-lg me-2"></i>
+          {% if member %}Update Member{% else %}Add New Member{% endif %}
+        </button>
+        <a href="{% url 'member_list' %}" class="btn btn-outline-secondary px-4 ms-2">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Auto-fill Total Amount from package selection
+  const packages = {
+    const packages = {
+      {% for pkg in packages %}
+      "{{ pkg.pk }}": {
+          fee: {{ pkg.fee }},
+          days: {{ pkg.duration_days }},
+          name: "{{ pkg.name }}"
+      },
+      {% endfor %}
+  };
+
+  const packageSelect = document.querySelector('[name="package"]');
+  const totalAmount = document.getElementById('totalAmount');
+  const amountPaid = document.getElementById('amountPaid');
+  const dueAmount = document.getElementById('dueAmount');
+
+  function calculateAmounts() {
+
+      const pkg = packages[packageSelect.value];
+
+      if (!pkg) {
+          totalAmount.value = "";
+          dueAmount.value = "";
+          return;
+      }
+
+      const total = parseFloat(pkg.fee);
+      const paid = parseFloat(amountPaid.value) || 0;
+
+      totalAmount.value = "KSh " + total.toLocaleString();
+      dueAmount.value = "KSh " + (total - paid).toLocaleString();
+  }
+
+  packageSelect.addEventListener("change", calculateAmounts);
+  amountPaid.addEventListener("input", calculateAmounts);
+
+  calculateAmounts();
+</script>
+{% endblock %}

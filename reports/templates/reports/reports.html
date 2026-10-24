@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block page_title %}Reports{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-bar-chart me-2" style="color:#1a7a4a"></i>Reports</h4>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- REPORT TYPE TABS -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body py-2">
+        <div class="d-flex flex-wrap gap-2">
+          {% for rt, label in "members:Member Registration,payments:Payment Collection,attendance:Attendance,payroll:Payroll,expiry:Subscription Expiry"|split:"," %}
+          {% endfor %}
+          <a href="?type=members" class="btn btn-sm {% if report_type == 'members' %}btn-wab{% else %}btn-outline-secondary{% endif %}">Member Registration</a>
+          <a href="?type=payments" class="btn btn-sm {% if report_type == 'payments' %}btn-wab{% else %}btn-outline-secondary{% endif %}">Payment Collection</a>
+          <a href="?type=attendance" class="btn btn-sm {% if report_type == 'attendance' %}btn-wab{% else %}btn-outline-secondary{% endif %}">Attendance</a>
+          <a href="?type=payroll" class="btn btn-sm {% if report_type == 'payroll' %}btn-wab{% else %}btn-outline-secondary{% endif %}">Payroll</a>
+          <a href="?type=expiry" class="btn btn-sm {% if report_type == 'expiry' %}btn-wab{% else %}btn-outline-secondary{% endif %}">Subscription Expiry</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body py-2">
+        <form method="get" class="d-flex flex-wrap gap-3 align-items-end">
+          <input type="hidden" name="type" value="{{ report_type }}">
+          {% if report_type != 'expiry' and report_type != 'payroll' %}
+          <div>
+            <label class="form-label" style="font-size:12px">From Date</label>
+            <input type="date" name="from" value="{{ date_from }}" class="form-control form-control-sm">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:12px">To Date</label>
+            <input type="date" name="to" value="{{ date_to }}" class="form-control form-control-sm">
+          </div>
+          {% endif %}
+          {% if report_type == 'expiry' %}
+          <div>
+            <label class="form-label" style="font-size:12px">Days to Expiry</label>
+            <input type="number" name="days" value="7" class="form-control form-control-sm" style="width:100px">
+          </div>
+          {% endif %}
+          <button class="btn btn-wab btn-sm">Generate Report</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i>Print
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT RESULTS -->
+<div class="card">
+  <div class="card-header">
+    {{ title }}
+    <span class="badge bg-light text-dark ms-2">{{ data|length }} records</span>
+  </div>
+  <div class="card-body p-0">
+
+    {% if report_type == 'members' %}
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Member ID</th><th>Name</th><th>Phone</th><th>Package</th><th>Join Date</th><th>Expiry</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for m in data %}
+      <tr>
+        <td style="font-family:monospace;font-size:11px">{{ m.member_id }}</td>
+        <td>{{ m.name }}</td>
+        <td>{{ m.phone }}</td>
+        <td>{{ m.package.name|default:'—' }}</td>
+        <td>{{ m.join_date }}</td>
+        <td>{{ m.expiry_date }}</td>
+        <td>{% if m.status %}<span class="badge-active">Active</span>{% else %}<span class="badge-inactive">Inactive</span>{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="7" class="text-center py-3 text-muted">No records found</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    {% elif report_type == 'payments' %}
+    <table class="table table-sm mb-0">
+      <thead><tr><th>TRX ID</th><th>Member</th><th>Amount</th><th>Reason</th><th>Date</th><th>Received By</th></tr></thead>
+      <tbody>
+      {% for t in data %}
+      <tr>
+        <td style="font-family:monospace;font-size:11px">{{ t.trx_id }}</td>
+        <td>{{ t.paid_by.name|default:'—' }}</td>
+        <td class="text-success fw-bold">KSh {{ t.amount|floatformat:0 }}</td>
+        <td>{{ t.get_reason_display }}</td>
+        <td>{{ t.date|date:"d M Y" }}</td>
+        <td>{{ t.received_by.get_full_name|default:'—' }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="text-center py-3 text-muted">No records found</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    {% elif report_type == 'attendance' %}
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Employee</th><th>Role</th><th>Date</th><th>Time In</th></tr></thead>
+      <tbody>
+      {% for a in data %}
+      <tr>
+        <td>{{ a.employee.get_full_name|default:a.employee.username }}</td>
+        <td>{{ a.employee.role|title }}</td>
+        <td>{{ a.date }}</td>
+        <td>{{ a.time_in }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="4" class="text-center py-3 text-muted">No records found</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    {% elif report_type == 'payroll' %}
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Employee</th><th>Month</th><th>Year</th><th>Basic</th><th>Allowances</th><th>Deductions</th><th>Net Salary</th></tr></thead>
+      <tbody>
+      {% for s in data %}
+      <tr>
+        <td>{{ s.employee.get_full_name|default:s.employee.username }}</td>
+        <td>{{ s.month }}</td>
+        <td>{{ s.year }}</td>
+        <td>KSh {{ s.basic_salary|floatformat:0 }}</td>
+        <td class="text-success">KSh {{ s.allowances|floatformat:0 }}</td>
+        <td class="text-danger">KSh {{ s.deductions|floatformat:0 }}</td>
+        <td class="fw-bold">KSh {{ s.net_salary|floatformat:0 }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="7" class="text-center py-3 text-muted">No records found</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    {% elif report_type == 'expiry' %}
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Member ID</th><th>Name</th><th>Phone</th><th>Package</th><th>Expiry Date</th><th>Days Left</th></tr></thead>
+      <tbody>
+      {% for m in data %}
+      <tr>
+        <td style="font-family:monospace;font-size:11px">{{ m.member_id }}</td>
+        <td>{{ m.name }}</td>
+        <td>{{ m.phone }}</td>
+        <td>{{ m.package.name|default:'—' }}</td>
+        <td><span class="badge-expired">{{ m.expiry_date }}</span></td>
+        <td>{{ m.expiry_date|timeuntil }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="text-center py-3 text-muted">No expiring subscriptions found</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

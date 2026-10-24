@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block page_title %}Member Details{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-person me-2" style="color:#1a7a4a"></i>Member Details</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'member_edit' member.pk %}" class="btn btn-wab btn-sm">
+      <i class="bi bi-pencil me-1"></i>Update
+    </a>
+    {% if member.status %}
+    <a href="{% url 'member_renew' member.pk %}" class="btn btn-warning btn-sm">
+        <i class="bi bi-arrow-repeat me-1"></i>Renew Membership
+    </a>
+    {% endif %}
+    <a href="{% url 'member_toggle' member.pk %}" class="btn btn-sm {% if member.status %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+       onclick="return confirm('Are you sure?')">
+      {% if member.status %}Deactivate Member{% else %}Activate Member{% endif %}
+    </a>
+    <a href="{% url 'member_list' %}" class="btn btn-outline-secondary btn-sm">← Back</a>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">Member Details</div>
+  <div class="card-body">
+    <div class="row g-3 align-items-center">
+      {% if member.photo %}
+      <div class="col-auto">
+        <img src="{{ member.photo.url }}" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;border:3px solid #1a7a4a">
+      </div>
+      {% endif %}
+      <div class="col">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Member ID</label>
+            <div class="fw-bold" style="color:#1a7a4a;font-family:monospace">{{ member.member_id }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Phone Number</label>
+            <div class="fw-bold">{{ member.phone }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Subscription Plan</label>
+            <div class="fw-bold">{{ member.package.name|default:'—' }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Status</label>
+            <div>
+              {% if not member.status %}
+                <span class="badge-inactive">Inactive</span>
+              {% elif member.expiry_date < today %}
+                <span class="badge-expired">Expired — {{ member.expiry_date }}</span>
+              {% else %}
+                <span class="badge-active">Active — expires {{ member.expiry_date }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Full Name</label>
+            <div class="fw-bold">{{ member.name }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Referee</label>
+            <div>{{ member.referee|default:'—' }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Address</label>
+            <div>{{ member.address|default:'—' }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">NID</label>
+            <div>{{ member.nid|default:'—' }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Date of Birth</label>
+            <div>{{ member.dob }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Gender</label>
+            <div>{{ member.gender|title }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Join Date</label>
+            <div>{{ member.join_date }}</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted" style="font-size:11px">Due Payment</label>
+            <div class="fw-bold {% if member.due_payment > 0 %}text-danger{% else %}text-success{% endif %}">
+              KSh {{ member.due_payment|floatformat:0 }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MONTHLY TRANSACTION HISTORY — matching SDS wireframe -->
+<div class="card">
+  <div class="card-header">Monthly Transaction History</div>
+  <div class="card-body p-0">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Reason</th>
+          <th>Total Amount</th>
+          <th>Paid Amount</th>
+          <th>Due Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in bills %}
+        <tr>
+          <td>{{ bill.month }} {{ bill.year }}</td>
+          <td>{{ bill.get_reason_display }}</td>
+          <td>KSh {{ bill.total_amount|floatformat:0 }}</td>
+          <td class="text-success fw-bold">KSh {{ bill.paid_amount|floatformat:0 }}</td>
+          <td class="{% if bill.due_amount > 0 %}text-danger fw-bold{% endif %}">KSh {{ bill.due_amount|floatformat:0 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center py-3" style="color:#aaa">No billing records yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

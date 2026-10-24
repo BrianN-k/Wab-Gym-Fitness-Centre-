@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block page_title %}Members{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-people me-2" style="color:#1a7a4a"></i>Member List</h4>
+  <a href="{% url 'member_create' %}" class="btn btn-wab btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>Register New Member
+  </a>
+</div>
+
+<!-- SEARCH -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="d-flex gap-2">
+      <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
+             placeholder="Search by name, phone or member ID..." style="max-width:400px">
+      <button class="btn btn-wab btn-sm"><i class="bi bi-search me-1"></i>Search</button>
+      {% if q %}<a href="{% url 'member_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Member ID</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Package</th>
+          <th>Join Date</th>
+          <th>Status</th>
+          <th>Due</th>
+          <th>View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px;font-weight:600;color:#1a7a4a">{{ m.member_id }}</span></td>
+          <td><strong>{{ m.name }}</strong></td>
+          <td>{{ m.phone }}</td>
+          <td>{{ m.package.name|default:'—' }}</td>
+          <td>{{ m.join_date }}</td>
+          <td>
+            {% if not m.status %}
+              <span class="badge-inactive">Inactive</span>
+            {% elif m.expiry_date < today %}
+              <span class="badge-expired">Expired</span>
+            {% else %}
+              <span class="badge-active">Active</span>
+            {% endif %}
+          </td>
+          <td>{% if m.due_payment > 0 %}<strong style="color:#dc3545">KSh {{ m.due_payment|floatformat:0 }}</strong>{% else %}—{% endif %}</td>
+          <td><a href="{% url 'member_detail' m.pk %}" class="btn btn-sm btn-wab">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center py-4" style="color:#aaa">No members found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

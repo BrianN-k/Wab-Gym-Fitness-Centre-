@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- STAT CARDS — matching SDS: Funds, Coaches, Staff, Members -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1a7a4a,#0d5c36)">
+      <i class="bi bi-cash-stack icon"></i>
+      <p>Monthly Income</p>
+      <h3>KSh {{ monthly_income|floatformat:0 }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1565c0,#0d47a1)">
+      <i class="bi bi-person-badge icon"></i>
+      <p>Active Coaches</p>
+      <h3>{{ total_coaches }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#6a1b9a,#4a148c)">
+      <i class="bi bi-people icon"></i>
+      <p>Total Staff</p>
+      <h3>{{ total_staff }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#e65100,#bf360c)">
+      <i class="bi bi-person-check icon"></i>
+      <p>Active Members</p>
+      <h3>{{ total_members }}</h3>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW FOR MONTH -->
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="bi bi-bar-chart me-2"></i>Overview for Month
+  </div>
+  <div class="card-body">
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <div class="p-3 rounded" style="background:#fff3cd;border-left:4px solid #ffc107">
+          <div style="font-size:11px;color:#856404;font-weight:600;text-transform:uppercase">Pending Coach Salary</div>
+          <div style="font-size:22px;font-weight:700;color:#856404">KSh {{ pending_coach_salary|floatformat:0 }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 rounded" style="background:#f8d7da;border-left:4px solid #dc3545">
+          <div style="font-size:11px;color:#721c24;font-weight:600;text-transform:uppercase">Monthly Expense</div>
+          <div style="font-size:22px;font-weight:700;color:#721c24">KSh {{ monthly_expense|floatformat:0 }}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 rounded" style="background:#d4edda;border-left:4px solid #28a745">
+          <div style="font-size:11px;color:#155724;font-weight:600;text-transform:uppercase">New Members</div>
+          <div style="font-size:22px;font-weight:700;color:#155724">{{ new_members }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INCOME CHART -->
+    <div class="mb-3">
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:10px">Income Chart for Month</div>
+      <canvas id="incomeChart" height="80"></canvas>
+    </div>
+
+    <!-- EXPENSE CHART -->
+    <div>
+      <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:10px">Expense Chart for Month</div>
+      <canvas id="expenseChart" height="60"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- EXPIRY ALERTS + RECENT TRANSACTIONS -->
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header" style="background:#856404;color:#fff">
+        <i class="bi bi-exclamation-triangle me-2"></i>Expiring Subscriptions (7 days)
+      </div>
+      <div class="card-body p-0">
+        {% if expiring_soon %}
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Member</th><th>Package</th><th>Expires</th></tr></thead>
+          <tbody>
+          {% for m in expiring_soon %}
+          <tr>
+            <td><a href="{% url 'member_detail' m.pk %}" style="color:#1a7a4a;font-weight:600">{{ m.name }}</a></td>
+            <td>{{ m.package.name|default:'-' }}</td>
+            <td>
+              <span class="badge-expired">{{ m.expiry_date }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center" style="color:#aaa;font-size:13px">
+          <i class="bi bi-check-circle" style="font-size:28px;color:#28a745"></i><br>No subscriptions expiring soon
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-arrow-down-circle me-2"></i>Recent Income Transactions
+      </div>
+      <div class="card-body p-0">
+        {% if recent_debits %}
+        <table class="table table-sm mb-0">
+          <thead><tr><th>TRX</th><th>Member</th><th>Amount</th><th>Reason</th></tr></thead>
+          <tbody>
+          {% for t in recent_debits %}
+          <tr>
+            <td style="font-family:monospace;font-size:11px">{{ t.trx_id }}</td>
+            <td>{{ t.paid_by.name|default:'-' }}</td>
+            <td><strong>KSh {{ t.amount|floatformat:0 }}</strong></td>
+            <td><span class="badge bg-success" style="font-size:10px">{{ t.get_reason_display }}</span></td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center" style="color:#aaa;font-size:13px">No transactions yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const labels = {{ months_labels|safe }};
+const income = {{ months_income|safe }};
+const expense = {{ months_expense|safe }};
+
+new Chart(document.getElementById('incomeChart'), {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Income (KSh)',
+      data: income,
+      backgroundColor: 'rgba(26,122,74,0.7)',
+      borderColor: '#1a7a4a',
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { callback: v => 'KSh '+v.toLocaleString() } } }
+  }
+});
+
+new Chart(document.getElementById('expenseChart'), {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Expense (KSh)',
+      data: expense,
+      backgroundColor: 'rgba(220,53,69,0.6)',
+      borderColor: '#dc3545',
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { callback: v => 'KSh '+v.toLocaleString() } } }
+  }
+});
+</script>
+{% endblock %}

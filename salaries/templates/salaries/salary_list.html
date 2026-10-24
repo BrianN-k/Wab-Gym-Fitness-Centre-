@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block page_title %}Salaries{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-wallet2 me-2" style="color:#1a7a4a"></i>Salary Management</h4>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- EMPLOYEE SALARY FORM -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Process Employee Salary</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'process_employee_salary' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Employee *</label>
+            <select name="employee" class="form-select" required>
+              <option value="">-- Select Employee --</option>
+              {% for e in employees %}
+              <option value="{{ e.pk }}">{{ e.get_full_name|default:e.username }} ({{ e.role|title }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Month *</label>
+              <select name="month" class="form-select" required>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Year</label>
+              <input type="number" name="year" class="form-control" value="{{ year }}">
+            </div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-4">
+              <label class="form-label">Basic (KSh)</label>
+              <input type="number" name="basic_salary" class="form-control" min="0" id="empBasic" oninput="calcNet()">
+            </div>
+            <div class="col-4">
+              <label class="form-label">Allowances</label>
+              <input type="number" name="allowances" class="form-control" min="0" value="0" id="empAllow" oninput="calcNet()">
+            </div>
+            <div class="col-4">
+              <label class="form-label">Deductions</label>
+              <input type="number" name="deductions" class="form-control" min="0" value="0" id="empDeduct" oninput="calcNet()">
+            </div>
+          </div>
+          <div class="mt-2 p-2 rounded" style="background:#d4edda;font-size:13px">
+            <strong>Net Salary: KSh <span id="netSalary">0</span></strong>
+            <br><small class="text-muted">= Basic + Allowances − Deductions</small>
+          </div>
+          <button type="submit" class="btn btn-wab w-100 mt-3">Process Employee Salary</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- COACH SALARY FORM -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Process Coach Salary</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'process_coach_salary' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Coach *</label>
+            <select name="coach" class="form-select" required>
+              <option value="">-- Select Coach --</option>
+              {% for c in coaches %}
+              <option value="{{ c.pk }}">{{ c.coach_id }} — {{ c.name }} (KSh {{ c.salary|floatformat:0 }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Month *</label>
+              <select name="month" class="form-select" required>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Year</label>
+              <input type="number" name="year" class="form-control" value="{{ year }}">
+            </div>
+          </div>
+          <div class="mb-3 mt-2">
+            <label class="form-label">Amount (KSh) *</label>
+            <input type="number" name="amount" class="form-control" min="0" required>
+          </div>
+          <button type="submit" class="btn btn-wab w-100 mt-3">Process Coach Salary</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE SALARY HISTORY -->
+<div class="card mb-4">
+  <div class="card-header">Employee Salary History</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr><th>Employee</th><th>Month</th><th>Year</th><th>Basic</th><th>Allowances</th><th>Deductions</th><th>Net Salary</th><th>Processed By</th></tr>
+      </thead>
+      <tbody>
+        {% for s in emp_salaries %}
+        <tr>
+          <td><strong>{{ s.employee.get_full_name|default:s.employee.username }}</strong></td>
+          <td>{{ s.month }}</td>
+          <td>{{ s.year }}</td>
+          <td>KSh {{ s.basic_salary|floatformat:0 }}</td>
+          <td class="text-success">KSh {{ s.allowances|floatformat:0 }}</td>
+          <td class="text-danger">KSh {{ s.deductions|floatformat:0 }}</td>
+          <td><strong>KSh {{ s.net_salary|floatformat:0 }}</strong></td>
+          <td style="font-size:11px;color:#888">{{ s.processed_by.get_full_name|default:'—' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center py-3 text-muted">No salary records yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COACH SALARY HISTORY -->
+<div class="card">
+  <div class="card-header">Coach Salary History</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr><th>Coach</th><th>Month</th><th>Year</th><th>Amount</th><th>Processed By</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for s in coach_salaries %}
+        <tr>
+          <td><strong>{{ s.coach.name }}</strong></td>
+          <td>{{ s.month }}</td>
+          <td>{{ s.year }}</td>
+          <td><strong>KSh {{ s.amount|floatformat:0 }}</strong></td>
+          <td style="font-size:11px;color:#888">{{ s.processed_by.get_full_name|default:'—' }}</td>
+          <td style="font-size:11px;color:#888">{{ s.processed_at|date:"d M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-3 text-muted">No coach salary records yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function calcNet() {
+  const basic = parseFloat(document.getElementById('empBasic').value)||0;
+  const allow = parseFloat(document.getElementById('empAllow').value)||0;
+  const deduct= parseFloat(document.getElementById('empDeduct').value)||0;
+  document.getElementById('netSalary').textContent = (basic+allow-deduct).toLocaleString();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block page_title %}Equipment{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-tools me-2" style="color:#1a7a4a"></i>Equipment Management</h4>
+</div>
+
+<!-- NEW EQUIPMENT FORM — matching SDS wireframe exactly -->
+<div class="card mb-4">
+  <div class="card-header">New Equipment Form</div>
+  <div class="card-body">
+    <form method="post" action="{% url 'equipment_create' %}">
+      {% csrf_token %}
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Name *</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Treadmill" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Price (KSh)</label>
+          <input type="number" name="price" class="form-control" min="0" value="0">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Brand *</label>
+          <input type="text" name="brand" class="form-control" placeholder="e.g. LifeFitness">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Quantity *</label>
+          <input type="number" name="quantity" class="form-control" value="1" min="1" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Equipment Type / Notes</label>
+          <input type="text" name="notes" class="form-control" placeholder="Cardio / Weights / etc.">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Serial Number *</label>
+          <input type="text" name="serial" class="form-control" placeholder="Unique serial" required>
+        </div>
+        <div class="col-12 text-center mt-2">
+          <button type="submit" class="btn btn-wab px-5">
+            <i class="bi bi-plus me-2"></i>Add New Equipment
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EQUIPMENT LIST TABLE — matching SDS wireframe -->
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Serial</th>
+          <th>Name</th>
+          <th>Brand</th>
+          <th>Quantity</th>
+          <th>Price (KSh)</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for eq in equipment %}
+        <tr>
+          <td style="font-family:monospace;font-size:12px;font-weight:600;color:#1a7a4a">{{ eq.serial }}</td>
+          <td><strong>{{ eq.name }}</strong></td>
+          <td>{{ eq.brand }}</td>
+          <td>
+              <span class="badge bg-primary">
+                  {{ eq.quantity }}
+              </span>
+          </td>
+          <td>KSh {{ eq.price|floatformat:0 }}</td>
+          <td>
+            {% if eq.status %}
+              <span class="badge-active">Active</span>
+            {% else %}
+              <span class="badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="btn-group">
+              <a href="{% url 'add_purchase' eq.pk %}"
+                  class="btn btn-success btn-sm">
+                    <i class="bi bi-cart-plus"></i>
+                    Add Purchase
+              </a>
+
+                <a href="{% url 'equipment_toggle' eq.pk %}"
+                  class="btn btn-outline-secondary btn-sm"
+                  onclick="return confirm('Toggle equipment status?')">
+                    {% if eq.status %}
+                        Deactivate
+                    {% else %}
+                        Activate
+                    {% endif %}
+                </a>
+
+            </div>
+        </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center py-4" style="color:#aaa">No equipment added yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

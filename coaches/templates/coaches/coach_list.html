@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block page_title %}Coaches{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-person-badge me-2" style="color:#1a7a4a"></i>Coach Management</h4>
+  <a href="{% url 'coach_create' %}" class="btn btn-wab btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>Register Coach
+  </a>
+</div>
+
+<!-- SEARCH — matching SDS wireframe -->
+<div class="card mb-4">
+  <div class="card-body py-2">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <span style="font-size:13px;font-weight:600;color:#555">Search</span>
+      <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
+             placeholder="Search for coach..." style="max-width:360px">
+      <button class="btn btn-wab btn-sm">Search</button>
+      {% if q %}<a href="{% url 'coach_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- COACH LIST TABLE — matching SDS wireframe -->
+<div class="card mb-4">
+  <div class="card-header">Coach List</div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Coach ID</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Specialization</th>
+          <th>Salary</th>
+          <th>Status</th>
+          <th>Schedule / View</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for coach in coaches %}
+        <tr>
+          <td><span style="font-family:monospace;font-size:12px;font-weight:600;color:#1a7a4a">{{ coach.coach_id }}</span></td>
+          <td><strong>{{ coach.name }}</strong></td>
+          <td>{{ coach.phone }}</td>
+          <td>{{ coach.specialization|default:'—' }}</td>
+          <td>KSh {{ coach.salary|floatformat:0 }}</td>
+          <td>
+            {% if coach.is_active %}
+              <span class="badge-active">Active</span>
+            {% else %}
+              <span class="badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'coach_detail' coach.pk %}" class="btn btn-sm btn-wab me-1">View</a>
+            <a href="{% url 'coach_toggle' coach.pk %}" class="btn btn-sm btn-outline-secondary"
+               onclick="return confirm('Toggle coach status?')">
+              {% if coach.is_active %}Deactivate{% else %}Activate{% endif %}
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center py-4" style="color:#aaa">No coaches registered yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

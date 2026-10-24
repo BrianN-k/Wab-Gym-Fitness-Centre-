@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block page_title %}Transactions{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-cash-stack me-2" style="color:#1a7a4a"></i>Payroll & Transactions</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'debit_create' %}" class="btn btn-wab btn-sm">
+      <i class="bi bi-plus me-1"></i>Record Income
+    </a>
+    <a href="{% url 'credit_create' %}" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-dash me-1"></i>Record Expense
+    </a>
+  </div>
+</div>
+
+<!-- PAYROLL SECTION — matches SDS wireframe -->
+<div class="card mb-4">
+  <div class="card-header">Payroll</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <!-- EMPLOYEE PAYROLL -->
+      <div class="col-md-6">
+        <form method="get" class="mb-2">
+          <div class="input-group input-group-sm">
+            <input type="text" name="emp_q" value="{{ emp_q }}" class="form-control" placeholder="Search for Employee">
+            <button class="btn btn-wab btn-sm">Search</button>
+          </div>
+        </form>
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">Employee</div>
+        <table class="table table-sm">
+          <thead><tr><th>Emp ID</th><th>Name</th><th>Due</th></tr></thead>
+          <tbody>
+          {% for emp in employees %}
+          <tr>
+            <td style="font-family:monospace;font-size:11px">EMP{{ emp.pk|stringformat:"04d" }}</td>
+            <td>{{ emp.get_full_name|default:emp.username }}</td>
+            <td>—</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted" style="font-size:12px">No employees found</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- COACH PAYROLL -->
+      <div class="col-md-6">
+        <form method="get" class="mb-2">
+          <div class="input-group input-group-sm">
+            <input type="text" name="coach_q" value="{{ coach_q }}" class="form-control" placeholder="Search for Coach">
+            <button class="btn btn-wab btn-sm">Search</button>
+          </div>
+        </form>
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">Coach</div>
+        <table class="table table-sm">
+          <thead><tr><th>Coach ID</th><th>Name</th><th>Due</th></tr></thead>
+          <tbody>
+          {% for c in coaches %}
+          <tr>
+            <td style="font-family:monospace;font-size:11px">{{ c.coach_id }}</td>
+            <td>{{ c.name }}</td>
+            <td>KSh {{ c.salary|floatformat:0 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted" style="font-size:12px">No coaches found</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREDIT (INCOMING) TRANSACTIONS -->
+<div class="card mb-4">
+  <div class="card-header" style="background:#155724">
+    <i class="bi bi-arrow-down-circle me-2"></i>Income Transactions (Members → Gym)
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr><th>TRX</th><th>Reason</th><th>Amount</th><th>Date</th><th>Paid By</th><th>Received By</th></tr>
+      </thead>
+      <tbody>
+      {% for t in debits %}
+      <tr>
+        <td style="font-family:monospace;font-size:11px;font-weight:600">{{ t.trx_id }}</td>
+        <td><span class="badge bg-success" style="font-size:10px">{{ t.get_reason_display }}</span></td>
+        <td><strong class="text-success">KSh {{ t.amount|floatformat:0 }}</strong></td>
+        <td style="font-size:12px">{{ t.date|date:"d M Y H:i" }}</td>
+        <td>{{ t.paid_by.name|default:'—' }}</td>
+        <td>{{ t.received_by.get_full_name|default:'—' }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center py-3 text-muted">No income transactions yet</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- DEBIT (OUTGOING) TRANSACTIONS -->
+<div class="card">
+  <div class="card-header" style="background:#721c24">
+    <i class="bi bi-arrow-up-circle me-2"></i>Expense Transactions (Gym → Staff / Equipment)
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr><th>TRX</th><th>Reason</th><th>Amount</th><th>Date</th><th>Employee/Coach</th><th>Name</th></tr>
+      </thead>
+      <tbody>
+      {% for t in credits %}
+      <tr>
+        <td style="font-family:monospace;font-size:11px;font-weight:600">{{ t.trx_id }}</td>
+        <td><span class="badge bg-danger" style="font-size:10px">{{ t.get_reason_display }}</span></td>
+        <td><strong class="text-danger">KSh {{ t.amount|floatformat:0 }}</strong></td>
+        <td style="font-size:12px">{{ t.date|date:"d M Y H:i" }}</td>
+        <td>
+          {% if t.is_employee %}Employee{% elif t.is_coach %}Coach{% elif t.is_equipment %}Equipment{% endif %}
+        </td>
+        <td>
+          {% if t.is_employee %}{{ t.employee.get_full_name|default:'—' }}
+          {% elif t.is_coach %}{{ t.coach.name|default:'—' }}
+          {% elif t.is_equipment %}{{ t.equipment.name|default:'—' }}
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center py-3 text-muted">No expense transactions yet</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

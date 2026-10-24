@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block page_title %}Packages{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-tag me-2" style="color:#1a7a4a"></i>Membership Packages</h4>
+</div>
+
+<!-- ADD PACKAGE FORM -->
+<div class="card mb-4">
+  <div class="card-header">Add New Package</div>
+  <div class="card-body">
+    <form method="post" action="{% url 'package_create' %}">
+      {% csrf_token %}
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Package Name *</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Monthly" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Duration (days) *</label>
+          <input type="number" name="duration_days" class="form-control" min="1" placeholder="30" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Fee (KSh) *</label>
+          <input type="number" name="fee" class="form-control" min="1" step="0.01" placeholder="3000" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Description</label>
+          <input type="text" name="description" class="form-control" placeholder="Optional description">
+        </div>
+        <div class="col-md-1">
+          <button type="submit" class="btn btn-wab w-100">Add</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- PACKAGE LIST -->
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Package Name</th>
+          <th>Duration</th>
+          <th>Fee (KSh)</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pkg in packages %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td><strong>{{ pkg.name }}</strong></td>
+          <td>{{ pkg.duration_days }} days</td>
+          <td><strong>KSh {{ pkg.fee|floatformat:0 }}</strong></td>
+          <td style="font-size:12px;color:#888">{{ pkg.description|default:'—' }}</td>
+          <td>
+            {% if pkg.is_active %}
+              <span class="badge-active">Active</span>
+            {% else %}
+              <span class="badge-inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'package_edit' pkg.pk %}" class="btn btn-sm btn-wab me-1">Edit</a>
+            <a href="{% url 'package_toggle' pkg.pk %}" class="btn btn-sm btn-outline-secondary"
+               onclick="return confirm('Toggle package status?')">
+              {% if pkg.is_active %}Deactivate{% else %}Activate{% endif %}
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center py-4" style="color:#aaa">No packages yet. Add one above.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

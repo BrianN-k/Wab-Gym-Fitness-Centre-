@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block auth_content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAB Gym — Sign In</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+body{background:#0d5c36;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-wrapper{display:flex;width:900px;min-height:500px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-left{background:#1a7a4a;color:#fff;width:40%;padding:50px 40px;display:flex;flex-direction:column;justify-content:center}
+.login-left .logo-icon{font-size:56px;color:#4caf50;margin-bottom:20px}
+.login-left h3{font-weight:700;margin-bottom:6px}
+.login-left p{opacity:.75;font-size:13px;margin-bottom:30px}
+.login-left .contact-item{font-size:12px;opacity:.7;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.login-right{background:#fff;flex:1;padding:50px 40px;display:flex;flex-direction:column;justify-content:center}
+.login-right h4{font-weight:700;color:#333;margin-bottom:6px}
+.login-right p{color:#888;font-size:13px;margin-bottom:30px}
+.form-control{border:1px solid #ddd;border-radius:8px;padding:12px 15px;font-size:14px}
+.form-control:focus{border-color:#1a7a4a;box-shadow:0 0 0 3px rgba(26,122,74,.1)}
+.btn-signin{background:#1a7a4a;color:#fff;border:none;padding:13px;border-radius:8px;font-weight:600;font-size:14px;width:100%}
+.btn-signin:hover{background:#0d5c36;color:#fff}
+.form-label{font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
+.alert{font-size:13px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-left">
+    <div class="logo-icon"><i class="bi bi-activity"></i></div>
+    <h3>WAB Gym & Fitness Centre</h3>
+    <p><br></p>
+    <div class="contact-item"><i class="bi bi-geo-alt"></i> Roysambu, Nairobi, Kenya</div>
+    <div class="contact-item"><i class="bi bi-telephone"></i> +254 702 435 765</div>
+    <div class="contact-item"><i class="bi bi-envelope"></i> info@wabgym.co.ke</div>
+    <div class="contact-item"><i class="bi bi-clock"></i> Mon–Sat: 6 AM – 10 PM</div>
+  </div>
+  <div class="login-right">
+    <h4>Sign In</h4>
+    <p>Enter your credentials to access the system</p>
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-danger">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" placeholder="Enter your username" required autofocus>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+      </div>
+      <button type="submit" class="btn-signin">Sign In</button>
+    </form>
+    <p class="text-center mt-4" style="font-size:11px;color:#bbb">
+      WAB Gym Management System v1.0 &copy; 2026 
+    </p>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{% endblock %}

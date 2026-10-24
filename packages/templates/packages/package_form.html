@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block page_title %}Edit Package{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-tag me-2" style="color:#1a7a4a"></i>Edit Package</h4>
+  <a href="{% url 'package_list' %}" class="btn btn-outline-secondary btn-sm">← Back</a>
+</div>
+<div class="card" style="max-width:500px">
+  <div class="card-header">Edit Package</div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Package Name *</label>
+        <input type="text" name="name" class="form-control" value="{{ pkg.name }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Duration (days) *</label>
+        <input type="number" name="duration_days" class="form-control" value="{{ pkg.duration_days }}" min="1" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Fee (KSh) *</label>
+        <input type="number" name="fee" class="form-control" value="{{ pkg.fee }}" min="1" step="0.01" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="2">{{ pkg.description|default:'' }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-wab w-100">Save Changes</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

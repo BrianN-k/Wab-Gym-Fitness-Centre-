@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block page_title %}Attendance{% endblock %}
+{% block content %}
+<div class="section-header">
+  <h4><i class="bi bi-calendar-check me-2" style="color:#1a7a4a"></i>Attendance</h4>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- RECORD ATTENDANCE -->
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">Record Attendance</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'attendance_record' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Employee *</label>
+            <select name="employee" class="form-select" required>
+              <option value="">-- Select Employee --</option>
+              {% for emp in employees %}
+              <option value="{{ emp.pk }}">{{ emp.get_full_name|default:emp.username }} ({{ emp.role|title }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Date *</label>
+            <input type="date" name="date" class="form-control" value="{{ today }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Time In *</label>
+            <input type="time" name="time_in" class="form-control" value="{% now 'H:i' %}" required>
+          </div>
+          <button type="submit" class="btn btn-wab w-100">
+            <i class="bi bi-check me-2"></i>Record Attendance
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATE FILTER -->
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header">
+        Attendance Records — {{ date_filter }}
+        <span class="badge bg-light text-dark ms-2">{{ records.count }} present</span>
+      </div>
+      <div class="card-body pb-0">
+        <form method="get" class="d-flex gap-2 mb-3">
+          <input type="date" name="date" value="{{ date_filter }}" class="form-control form-control-sm" style="max-width:180px">
+          <button class="btn btn-wab btn-sm">Filter</button>
+          <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary btn-sm">Today</a>
+        </form>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Time In</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in records %}
+            <tr>
+              <td style="font-family:monospace;font-size:11px">EMP{{ r.employee.pk|stringformat:"04d" }}</td>
+              <td><strong>{{ r.employee.get_full_name|default:r.employee.username }}</strong></td>
+              <td><span class="badge bg-secondary" style="font-size:10px">{{ r.employee.role|title }}</span></td>
+              <td>{{ r.time_in }}</td>
+              <td>{{ r.date }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center py-4 text-muted">No attendance records for {{ date_filter }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

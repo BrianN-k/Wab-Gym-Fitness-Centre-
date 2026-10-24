@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAB Gym & Fitness Centre</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+:root{--wab-green:#1a7a4a;--wab-dark:#0d5c36;--wab-light:#e8f5ee;--sidebar-w:220px}
+body{background:#f4f6f9;font-family:'Segoe UI',sans-serif}
+.sidebar{position:fixed;top:0;left:0;height:100vh;width:var(--sidebar-w);background:var(--wab-dark);z-index:1000;overflow-y:auto;transition:.3s}
+.sidebar .brand{padding:20px 15px;border-bottom:1px solid rgba(255,255,255,.15)}
+.sidebar .brand h5{color:#fff;margin:0;font-size:14px;font-weight:700}
+.sidebar .brand small{color:rgba(255,255,255,.6);font-size:11px}
+.sidebar .nav-link{color:rgba(255,255,255,.75);padding:10px 20px;font-size:13px;display:flex;align-items:center;gap:10px;border-radius:0;transition:.2s}
+.sidebar .nav-link:hover,.sidebar .nav-link.active{color:#fff;background:rgba(255,255,255,.12)}
+.sidebar .nav-link i{font-size:16px;width:20px}
+.sidebar .nav-section{color:rgba(255,255,255,.4);font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:15px 20px 5px}
+.main-content{margin-left:var(--sidebar-w);min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:999}
+.topbar .page-title{font-size:16px;font-weight:600;color:#333;margin:0}
+.topbar .user-info{display:flex;align-items:center;gap:12px}
+.topbar .user-badge{background:var(--wab-light);color:var(--wab-dark);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.content-area{padding:24px}
+.card{border:none;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card-header{background:var(--wab-green);color:#fff;border-radius:10px 10px 0 0!important;font-weight:600;padding:12px 18px}
+.stat-card{border-radius:10px;padding:20px;color:#fff;position:relative;overflow:hidden}
+.stat-card .icon{position:absolute;right:15px;top:15px;font-size:36px;opacity:.3}
+.stat-card h3{font-size:28px;font-weight:700;margin:0}
+.stat-card p{margin:0;font-size:13px;opacity:.85}
+.bg-wab{background:var(--wab-green)}
+.bg-wab-dark{background:var(--wab-dark)}
+.btn-wab{background:var(--wab-green);color:#fff;border:none}
+.btn-wab:hover{background:var(--wab-dark);color:#fff}
+.badge-active{background:#d4edda;color:#155724;padding:3px 10px;border-radius:12px;font-size:11px}
+.badge-inactive{background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:12px;font-size:11px}
+.badge-expired{background:#fff3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:11px}
+.table th{background:#f8f9fa;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#6c757d}
+.table td{font-size:13px;vertical-align:middle}
+.alert-wab{background:var(--wab-light);border:1px solid var(--wab-green);color:var(--wab-dark)}
+.form-label{font-size:13px;font-weight:600;color:#555}
+.section-header{background:#fff;border-radius:10px;padding:16px 20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between}
+.section-header h4{margin:0;font-size:16px;font-weight:700;color:#333}
+</style>
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="brand">
+    <div style="font-size:24px;color:#4caf50;margin-bottom:6px"><i class="bi bi-activity"></i></div>
+    <h5>WAB Gym & Fitness</h5>
+    <small>Management System</small>
+  </div>
+  <nav class="mt-2">
+    <div class="nav-section">Main</div>
+    <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <div class="nav-section">Operations</div>
+    <a href="{% url 'member_list' %}" class="nav-link {% if 'member' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-people"></i> Members
+    </a>
+    <a href="{% url 'attendance_list' %}" class="nav-link {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-calendar-check"></i> Attendance
+    </a>
+    <a href="{% url 'payment_list' %}" class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-cash-stack"></i> Transactions
+    </a>
+    <div class="nav-section">Management</div>
+    <a href="{% url 'coach_list' %}" class="nav-link {% if 'coach' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-person-badge"></i> Coaches
+    </a>
+    <a href="{% url 'equipment_list' %}" class="nav-link {% if 'equipment' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-tools"></i> Equipment
+    </a>
+    <a href="{% url 'package_list' %}" class="nav-link {% if 'package' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-tag"></i> Packages
+    </a>
+    {% if user.role == "admin" or user.role == "accountant" %}
+    <a href="{% url 'salary_list' %}" class="nav-link {% if 'salary' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-wallet2"></i> Salaries
+    </a>
+    {% endif %}
+    {% if user.is_admin %}
+    <div class="nav-section">Admin</div>
+    <a href="{% url 'user_list' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-shield-lock"></i> Users
+    </a>
+    {% endif %}
+    <div class="mt-4 mb-2">
+    <a href="{% url 'logout' %}" class="nav-link" style="color:rgba(255,100,100,.8)">
+      <i class="bi bi-box-arrow-left"></i> Logout
+    </a>
+    </div>
+  </nav>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <div class="topbar">
+    <h6 class="page-title">{% block page_title %}WAB Gym{% endblock %}</h6>
+    <div class="user-info">
+      <span style="font-size:13px;color:#666">Welcome, <strong>{{ user.get_full_name|default:user.username }}</strong></span>
+      <span class="user-badge"><i class="bi bi-person-circle me-1"></i>{{ user.role|title }}</span>
+    </div>
+  </div>
+  <div class="content-area">
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert" style="font-size:13px">
+          {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% else %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
