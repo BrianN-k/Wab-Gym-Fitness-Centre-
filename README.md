@@ -1,5 +1,4 @@
 # WAB Gym Management System
-## KCA University — STU 3101 | Kipkemboi Brian Kipkosgei (23/00574)
 
 A web-based gym management system built with Python, Django and SQLite/MySQL.
 
@@ -123,4 +122,4 @@ wabgym/
 
 ---
 
-*WAB Gym Management System v1.0 | KCA University STU 3101 | 2026*
+*WAB Gym Management System*
